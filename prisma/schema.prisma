@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  role_id   Int    @id @unique @default(autoincrement())
+  role_type String
+  User      User[]
+}
+
+model User {
+  user_id   Int      @id @unique @default(autoincrement())
+  name      String
+  last_name String
+  email     String   @unique
+  password  String
+  role_id   Int      @default(1)
+  Adress    Adress[]
+  cart      Cart?
+  Order     Order[]
+  Role      Role     @relation(fields: [role_id], references: [role_id])
+}
+
+model Color {
+  color_id   Int       @id @unique @default(autoincrement())
+  color_name String    @unique
+  products   Product[]
+}
+
+model Brand {
+  brand_id   Int              @id @unique @default(autoincrement())
+  brand_name String
+  products   GeneralProduct[]
+}
+
+model GeneralProduct {
+  general_product_id   Int            @id @default(autoincrement())
+  brand_id             Int
+  section_id           Int
+  general_product_name String
+  description          String
+  Brand                Brand          @relation(fields: [brand_id], references: [brand_id])
+  Section              Section        @relation(fields: [section_id], references: [section_id])
+  products             Product[]
+  wantedproducts       WantedProduct?
+}
+
+model WantedProduct {
+  general_product_id        Int            @id
+  most_wanted_product_count Int
+  GeneralProduct            GeneralProduct @relation(fields: [general_product_id], references: [general_product_id])
+}
+
+model Section {
+  section_id     Int              @id @default(autoincrement())
+  section_name   String           @unique
+  GeneralProduct GeneralProduct[]
+}
+
+model Size {
+  size_id      Int           @id @unique @default(autoincrement())
+  size_type    String        @unique
+  size_amounts Size_Amount[]
+}
+
+model Size_Amount {
+  size_amount_id Int       @id @unique @default(autoincrement())
+  size_id        Int
+  size_amount    Int
+  products       Product[]
+  Size           Size      @relation(fields: [size_id], references: [size_id])
+}
+
+model Product {
+  product_id         Int             @id @unique @default(autoincrement())
+  value              Float
+  color_id           Int
+  size_amount_id     Int
+  general_product_id Int
+  hover_image_url    String?
+  image_url          String?
+  cartItems          CartItem[]
+  Color              Color           @relation(fields: [color_id], references: [color_id])
+  GeneralProduct     GeneralProduct  @relation(fields: [general_product_id], references: [general_product_id])
+  Size_Amount        Size_Amount     @relation(fields: [size_amount_id], references: [size_amount_id])
+  Product_Order      Product_Order[]
+}
+
+model Order {
+  order_id           Int    @id @unique @default(autoincrement())
+  user_id            Int
+  purchased_products Int
+  order_total        Float
+  address_id         Int
+  Adress             Adress @relation(fields: [address_id], references: [adress_id])
+  User               User   @relation(fields: [user_id], references: [user_id])
+}
+
+model Product_Order {
+  product_order_id Int     @id @unique @default(autoincrement())
+  order_id         Int
+  product_id       Int
+  product_quantity Int
+  product_total    Float
+  Product          Product @relation(fields: [product_id], references: [product_id])
+}
+
+model Cart {
+  cart_id          Int        @id @unique @default(autoincrement())
+  user_id          Int        @unique
+  cart_total_price Float
+  user             User       @relation(fields: [user_id], references: [user_id])
+  cartItems        CartItem[]
+}
+
+model Adress {
+  adress_id Int     @id @unique @default(autoincrement())
+  user_id   Int
+  adress    String
+  city      String
+  state     String
+  zip_code  String
+  User      User    @relation(fields: [user_id], references: [user_id])
+  Order     Order[]
+}
+
+model CartItem {
+  cart_item_id     Int     @id @unique @default(autoincrement())
+  cart_id          Int
+  product_id       Int
+  product_price    Float
+  product_quantity Int
+  cart             Cart    @relation(fields: [cart_id], references: [cart_id])
+  product          Product @relation(fields: [product_id], references: [product_id])
+
+  @@unique([cart_id, product_id])
+}
