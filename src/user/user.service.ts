@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'; // Importación de decoradores y excepciones de NestJS
 import { PrismaService } from 'src/prisma/prisma.service'; // Importación del servicio Prisma para interactuar con la base de datos
-import { User } from '@prisma/client'; // Importación del modelo de usuario de Prisma
+import { User as PrismaUser } from '@prisma/client'; // Importación del modelo de usuario de Prisma
 import * as bycrypt from 'bcrypt'; // Importación de la biblioteca bcrypt para el cifrado de contraseñas
 import { JwtService } from '@nestjs/jwt'; // Importación del servicio Jwt de NestJS para manejar tokens JWT
 import { Response, Request } from 'express'; // Importación de Response y Request de Express
@@ -22,14 +22,14 @@ export class UserService {
     }
 
     // Método para crear un nuevo usuario en la base de datos
-    async createUser(data: User): Promise<User> {
+    async createUser(data: PrismaUser): Promise<PrismaUser> {
         const hashed_password = await bycrypt.hash(data.password, 12); // Se cifra la contraseña del usuario
         data.password = hashed_password; // Se actualiza la contraseña cifrada en los datos del usuario
         return this.prisma.user.create({ data }); // Se crea el usuario en la base de datos mediante Prisma
     }
 
     // Método para iniciar sesión de un usuario
-    async logUser(data: User, response: Response): Promise<any> {
+    async logUser(data: PrismaUser, response: Response): Promise<any> {
         const user = await this.validateUser(data); // Se valida al usuario y se obtiene el objeto de usuario
 
         if (!user) {
@@ -43,7 +43,7 @@ export class UserService {
     }
 
     // Método para validar las credenciales de un usuario
-    async validateUser(data: User): Promise<User | null> {
+    async validateUser(data: PrismaUser): Promise<PrismaUser | null> {
         const user = await this.prisma.user.findFirst({
             where: { email: data.email } // Se busca al usuario en la base de datos por su correo electrónico
         });
@@ -56,13 +56,13 @@ export class UserService {
     }
 
     // Método para generar un token JWT para un usuario
-    async createToken(user: User): Promise<string> {
+    async createToken(user: PrismaUser): Promise<string> {
         const { password, ...userWithoutPassword } = user; // Se elimina la contraseña del usuario del objeto antes de firmar el token
         return this.jwtService.signAsync(userWithoutPassword); // Se firma y devuelve el token JWT
     }
 
     // Método para obtener información del usuario basada en el token JWT
-    async getUserFromToken(request: Request): Promise<User | undefined> {
+    async getUserFromToken(request: Request): Promise<PrismaUser | undefined> {
         const token = await this.extractTokenFromRequest(request); // Se extrae el token JWT de la solicitud
 
         if (!token) {

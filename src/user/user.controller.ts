@@ -1,6 +1,6 @@
 import { Controller, Injectable, Post, Body, Res, Get, Req} from '@nestjs/common';
 import { UserService } from './user.service';
-import { User } from '@prisma/client';
+import { User as PrismaUser } from '@prisma/client';
 import { Response, Request } from 'express';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -33,7 +33,7 @@ export class UserController {
   @ApiOperation({
     description: 'Registra un nuevo usuario.'
   })
-  async createUser(@Body() data: User) {
+  async createUser(@Body() data: PrismaUser) {
     return this.userService.createUser(data);
   }
 
@@ -56,7 +56,7 @@ export class UserController {
   @ApiOperation({
     description: 'Loguea un usuario (Este debe estar registrado en la base de datos).', // Update description
   })
-  async logUser(@Body() data: User, @Res({ passthrough: true }) res: Response) {
+  async logUser(@Body() data: PrismaUser, @Res({ passthrough: true }) res: Response) {
     return this.userService.logUser(data, res);
   }
 
